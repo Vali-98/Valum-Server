@@ -50,8 +50,8 @@ app.post('/wol', (req, res) => {
 
 // Check Mac active status Endpoint
 app.get('/status', (req, res) => {
-    ping.sys.probe(deviceIP, (isAlive) => {
-        res.status(isAlive ? 200 : 404).json({ active: isAlive })
+    ping.sys.probe(deviceIP, (isAlive, err) => {
+        res.status(200).json({ active: isAlive })
     })
 })
 
@@ -84,7 +84,78 @@ app.post('/shutdown', (req, res) => {
         })
 })
 
+app.post('/sleep', (req, res) => {
+    const conn = new ssh2()
+
+    conn.on('ready', () => {
+        detectOS(conn)
+            .then((os) => {
+                const sleepCommand = getSleepCommand(os)
+                if (!sleepCommand) {
+                    throw new Error(`Unsupported OS: ${os}`)
+                }
+                return execCommand(conn, sleepCommand)
+            })
+            .then(() => {
+                res.status(200).json({ message: 'Device sleeping successfully.' })
+            })
+            .catch((err) => {
+                res.status(500).json({ message: err.message })
+            })
+            .finally(() => {
+                conn.end()
+            })
+    })
+        .on('error', (err) => {
+            res.status(500).json({ message: 'SSH connection error', error: err.message })
+        })
+        .connect({
+            host: deviceIP,
+            port: 22,
+            username: sshUser,
+            password: sshPassword,
+        })
+})
+
+function detectOS(conn) {
+    return new Promise((resolve, reject) => {
+        execCommand(conn, 'uname')
+            .then((output) => resolve(output.trim()))
+            .catch(reject)
+    })
+}
+
+function getSleepCommand(os) {
+    switch (os) {
+        case 'Darwin':
+            return `osascript -e 'tell application "System Events" to sleep'` // macOS
+        case 'Linux':
+            return 'systemctl suspend' // Linux
+        default:
+            return null
+    }
+}
+
+function execCommand(conn, command) {
+    return new Promise((resolve, reject) => {
+        conn.exec(command, (err, stream) => {
+            if (err) return reject(err)
+
+            let output = ''
+            stream.on('data', (data) => {
+                output += data.toString()
+            })
+            stream.on('close', (code) => {
+                if (code === 0) {
+                    resolve(output)
+                } else {
+                    reject(new Error(`Command "${command}" failed with code ${code}`))
+                }
+            })
+        })
+    })
+}
+
 app.listen(serverPort, () => {
     console.log(`Express server running on port ${serverPort}`)
 })
-
