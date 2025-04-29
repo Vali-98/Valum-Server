@@ -2,6 +2,10 @@
 
 A simple server to be used alongside the [Valum Client](https://github.com/Vali-98/Valum-Client).
 
+If you like the project, feel free support me here:
+
+<a href='https://ko-fi.com/W7W7X8T7W' target='_blank'><img height='42' style='border:0px;height:42px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 ### Usage
 
 By default, Valum Server uses `PORT=3000`
