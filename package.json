@@ -1,0 +1,19 @@
+{
+  "name": "valumserver",
+  "version": "1.0.0",
+  "description": "Server for Valum",
+  "license": "ISC",
+  "author": "Vali-98",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "ping": "^0.4.4",
+    "ssh2": "^1.16.0",
+    "wake_on_lan": "^1.0.0"
+  }
+}
